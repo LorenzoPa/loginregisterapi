@@ -4,11 +4,12 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .models import CustomUser
 from .serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -33,6 +34,17 @@ class UpdateFavoriteTeamView(APIView):
 
         return Response({"message": "Squadra preferita aggiornata", "favorite_team": team_name})
     
+class UpdateFavoriteCityView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        city_name = request.data.get("favorite_city")
+        if not city_name:
+            return Response({"error": "Nessuna città fornita"}, status=status.HTTP_400_BAD_REQUEST)
+        request.user.favorite_city = city_name
+        request.user.save()
+
+        return Response({"message": "Città preferita aggiornata", "favorite_city": city_name})
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
